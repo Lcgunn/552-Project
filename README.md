@@ -1,2 +1,2 @@
 # 552-Project
-Creating a MIPS style CPU
+Creating a MIPS-style CPU
