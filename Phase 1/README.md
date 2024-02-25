@@ -52,13 +52,32 @@
 
    
 ## Memory System   
-1) Single-cycle Instruction Memory
-2) Data Memory
+1) **Single-cycle Instruction Memory**
+2) **Data Memory**
 >[!Note]
 >Verilog modules are provided for both memories
 
 ## Implementation
-1) Design
-2) Reset Sequence
-3) Flags
-4) Interface
+1) **Design**
+2) **Reset Sequence**
+3) **Flags**
+
+    3.1) Zero (Z) Flag
+
+         --> Set iff the output of the operation is zero.
+
+    3.2) Overflow (V) Flag
+
+         --> Set by the ADD and SUB instructions
+
+         --> Set iff the operation results in an overflow.
+
+    3.3) Sign (N) Flag
+
+         --> Set iff the result of the ADD or SUB instruction is negative.
+
+^[!Note]
+^Only the arithmetic instructions (except PADDSB and RED) can change the three flags (Z, V, N).
+^The logical instructions (XOR, SLL, SRA, ROR) change the Z FLAG, but they do not change the N or V flag.
+   
+5) Interface
