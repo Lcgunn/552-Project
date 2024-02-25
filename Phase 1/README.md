@@ -68,11 +68,11 @@
 
     1.4) **Reduction unit (RED):** Use a tree of 4-bit carry lookahead adders.
 
-        At the first level of the reduction tree, sum<sub>ab</sub> = aaaaaaaa + bbbbbbbb
-   needs an 8-bit adder to generate a 9-bit result, in which this 8-bit adder is constructed
-   from two 4-bit CLAs. The same goes for sumcd = cccccccc + dddddddd. Then at the second
-   level of the tree, the final result sumab + sumcd should perform 9-bit addition using three
-   4-bit CLAs.
+       At the first level of the reduction tree, sum<sub>ab</sub> = aaaaaaaa + bbbbbbbb
+       needs an 8-bit adder to generate a 9-bit result, in which this 8-bit adder is
+       constructed from two 4-bit CLAs. The same goes for sumcd = cccccccc + dddddddd.
+       Then at the second level of the tree, the final result sumab + sumcd should
+       perform 9-bit addition using three 4-bit CLAs.
 
 >[!Important]
 > These are required design specifications for specific modules
