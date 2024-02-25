@@ -6,17 +6,23 @@ Notes for Organizing Tasks: [here](https://docs.google.com/document/d/1EIT2YE9qV
 ## Phase 1
 1) **Compute Instructions**
 
-    1.1) Saturating Arithmetic for add sub
+    1.1) Saturating Arithmetic for add sub and pad sub (4 word add/sub)
+
+    1.2) XOR  instruction
    
-    1.2) Saturating Arithmetic for pad sub (4 word add/sub)
+    1.3) Reduction
+
+         --> Add top bytes and lower bytes
    
-    1.3) Reduction (Add top bytes and lower bytes)
-   
-    1.4) Right rotation (take bytes off the LSB and append them to MSB)
+    1.4) Right rotation
+
+         --> Take bytes off the LSB and append them to MSB
    
          --> Opcode is Rd,Rs, imm → (imm is 4 bit)
+
+    1.5) SLL, SRA
    
-2) **Memory Instructions**
+3) **Memory Instructions**
    
     2.1) Load and Store word
    
@@ -24,7 +30,7 @@ Notes for Organizing Tasks: [here](https://docs.google.com/document/d/1EIT2YE9qV
    
     2.2) Load Lower and Upper Byte **NOT ACTUALLY MEMORY OPS** (More a register instruction)
    
-3) **Control Instructions/Signals**
+4) **Control Instructions/Signals**
    
     3.1) Jump
    
@@ -38,8 +44,8 @@ Notes for Organizing Tasks: [here](https://docs.google.com/document/d/1EIT2YE9qV
    
          --> Set by other instructions for use in Branch
    
-4) Compile? AKA translate instruct
+5) Compile? AKA translate instruct
    
-5) **Integration**
+6) **Integration**
 
-6) **Memory** is provided?
+7) **Memory** is provided?
