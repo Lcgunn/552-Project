@@ -11,25 +11,29 @@ Notes for Organizing Tasks: [here](https://docs.google.com/document/d/1EIT2YE9qV
 
     1.2) XOR  instruction
    
-    1.3) Reduction
+    1.3) Reduction (RED)
 
          --> Add top bytes and lower bytes
    
-    1.4) Right rotation
+    1.4) Right Rotation (ROR)
 
          --> Take bytes off the LSB and append them to MSB
    
-         --> Opcode is Rd,Rs, imm → (imm is 4 bit)
+         --> Opcode Rd,Rs, imm → (imm is 4 bit)
 
-    1.5) SLL, SRA
+    1.5) Logical Left Shift (SLL) and Arithmetic Right Shift (SRA)
    
-3) **Memory Instructions**
+2) **Memory Instructions**
    
-    2.1) Load and Store word
+    2.1) Load Word (LW) and Store Word (SW)
    
          --> The LSB is always zero, so it is omitted in the instruction
+
+         --> Opcode Rt,Rs, offset
    
-    2.2) Load Lower and Upper Byte **NOT ACTUALLY MEMORY OPS** (More a register instruction)
+    2.2) Load Immediate Type: Load Lower Byte (LLB) and Load Higher Byte (LHB)
+   >[!Note]
+   >These two are not technically loading from memory but are grouped with memory instructions.
    
 4) **Control Instructions/Signals**
    
@@ -45,8 +49,8 @@ Notes for Organizing Tasks: [here](https://docs.google.com/document/d/1EIT2YE9qV
    
          --> Set by other instructions for use in Branch
    
-5) Compile? AKA translate instruct
+6) Compile? AKA translate instruct
    
-6) **Integration**
+7) **Integration**
 
-7) **Memory** is provided?
+8) **Memory** is provided?
