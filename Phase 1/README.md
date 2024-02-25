@@ -12,9 +12,9 @@
    
     1.4) Right Rotation (**ROR**)
 
-         --> Take bytes off the LSB and append them to MSB
+        Take bytes off the LSB and append them to MSB
    
-         --> Opcode Rd,Rs, imm → (imm is 4 bit)
+         Opcode Rd,Rs, imm → (imm is 4 bit)
 
     1.5) Logical Left Shift (**SLL**) and Arithmetic Right Shift (**SRA**)
    
@@ -22,9 +22,9 @@
    
     2.1) Load Word (**LW**) and Store Word (**SW**)
    
-         --> The LSB is always zero, so it is omitted in the instruction
+        The LSB is always zero, so it is omitted in the instruction
 
-         --> Opcode Rt,Rs, offset
+        Opcode Rt,Rs, offset
    
     2.2) Load Immediate Type: Load Lower Byte (**LLB**) and Load Higher Byte (**LHB**)
 >[!Note]
@@ -34,21 +34,21 @@
    
     3.1) Branch (**B**)
 
-         --> Conditionally jumps to the address obtained by: signed imm + (PC + 2)
+        Conditionally jumps to the address obtained by: signed imm + (PC + 2)
    
     3.2) Branch Register (**BR**)
 
-         --> Jumps to register
+        Jumps to register
    
     3.3) **PCS**
 
-         --> Saves the next PC into rd (PC + 2)
+        Saves the next PC into rd (PC + 2)
 
-         --> PCS rd
+        PCS rd
    
     3.4) **HLT**
 
-         --> Stops the advancement of PC
+        Stops the advancement of PC
 
    
 ## Memory System   
@@ -68,12 +68,16 @@
 
     1.4) **Reduction unit (RED):** Use a tree of 4-bit carry lookahead adders.
 
-         --> At the first level of the reduction tree, sum<sub>ab</sub> = aaaaaaaa + bbbbbbbb
-         -->  needs an 8-bit adder to generate a 9-bit result, in which this 8-bit
-         --> adder is constructed from two 4-bit CLAs. The same goes for
-         --> sum<sub>cd</sub> = cccccccc + dddddddd. Then at the second level of the tree,
-         --> the final result sum<sub>ab</sub> + sum<sub>cd</sub> should perform 9-bit addition using three
-         --> 4-bit CLAs.
+        At the first level of the reduction tree, sum<sub>ab</sub> = aaaaaaaa + bbbbbbbb
+
+        needs an 8-bit adder to generate a 9-bit result, in which this 8-bit
+
+        adder is constructed from two 4-bit CLAs. The same goes for
+
+        sum<sub>cd</sub> = cccccccc + dddddddd. Then at the second level of the tree,
+        the final result sum<sub>ab</sub> + sum<sub>cd</sub> should perform 9-bit addition using three
+   
+        4-bit CLAs.
 
 >[!Important]
 > These are required design specifications for specific modules
