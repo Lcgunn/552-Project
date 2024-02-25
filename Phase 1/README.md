@@ -76,8 +76,8 @@
 
          --> Set iff the result of the ADD or SUB instruction is negative.
 
-^[!Note]
-^Only the arithmetic instructions (except PADDSB and RED) can change the three flags (Z, V, N).
-^The logical instructions (XOR, SLL, SRA, ROR) change the Z FLAG, but they do not change the N or V flag.
+>[!Note]
+>Only the arithmetic instructions (except PADDSB and RED) can change the three flags (Z, V, N).
+>The logical instructions (XOR, SLL, SRA, ROR) change the Z FLAG, but they do not change the N or V flag.
    
 5) Interface
