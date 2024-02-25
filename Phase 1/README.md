@@ -59,6 +59,21 @@
 
 ## Implementation
 1) **Design**
+
+    1.1) **ALU Adder:** Carry lookahead adder (CLA)
+
+    1.2) **Shifter:** Use 4:1 muxes, a variant of the design with 2:1 muxes in the lecture slides
+
+    1.3) **Register File:** As specified in the homework
+
+    1.4) **Reduction unit (RED):** Use a tree of 4-bit carry lookahead adders.
+
+         --> At the first level of the reduction tree, sumab = aaaaaaaa + bbbbbbbb needs an 8-bit adder to generate a 9-bit result, in which this 8-bit adder is constructed from two 4-bit CLAs. The same goes for sumcd = cccccccc + dddddddd. Then at the second level of the tree, the final result sumab + sumcd should perform 9-bit addition using three 4-bit CLAs.
+
+
+>[!Important]
+> These are required design specifications for specific modules
+
 2) **Reset Sequence**
 
    2.1) WISC-S24 has an active low reset input (rst_n). Instructions are executed when rst_n is high.  If rst_n goes low for one clock cycle, the contents of the state of the machine are reset and execution is restarted at address 0x0000.
@@ -84,3 +99,5 @@
 >The logical instructions (XOR, SLL, SRA, ROR) change the Z FLAG, but they do not change the N or V flag.
    
 4) **Interface**
+
+   4.1) Your top level Verilog code should be in a file named cpu.v.  It should have a simple 4-signal interface: clk, rst_n, hlt and pc[15:0].
