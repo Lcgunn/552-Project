@@ -17,4 +17,4 @@ Notes for Organizing Tasks: [here](https://docs.google.com/document/d/1EIT2YE9qV
 1) Design
 2) Reset Sequence
 3) Flags
-4) Inerface
+4) Interface
