@@ -32,8 +32,8 @@ Notes for Organizing Tasks: [here](https://docs.google.com/document/d/1EIT2YE9qV
          --> Opcode Rt,Rs, offset
    
     2.2) Load Immediate Type: Load Lower Byte (LLB) and Load Higher Byte (LHB)
-   [!Note]
-   These two are not technically loading from memory but are grouped with memory instructions.
+>[!Note]
+>These two are not technically loading from memory but are grouped with memory instructions.
    
 4) **Control Instructions/Signals**
    
