@@ -7,6 +7,7 @@
     1.2) **XOR**  instruction
    
     1.3) Reduction (**RED**)
+   
         * Add top bytes and lower bytes
    
     1.4) Right Rotation (**ROR**)
@@ -17,7 +18,7 @@
 
     1.5) Logical Left Shift (**SLL**) and Arithmetic Right Shift (**SRA**)
    
-2) **Memory Instructions**
+3) **Memory Instructions**
    
     2.1) Load Word (**LW**) and Store Word (**SW**)
    
