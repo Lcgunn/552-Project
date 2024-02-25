@@ -8,7 +8,7 @@
    
     1.3) Reduction (**RED**)
    
-        * Add top bytes and lower bytes
+        Add top bytes and lower bytes
    
     1.4) Right Rotation (**ROR**)
 
