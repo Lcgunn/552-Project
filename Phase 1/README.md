@@ -60,7 +60,10 @@
 ## Implementation
 1) **Design**
 2) **Reset Sequence**
-3) **Flags**
+
+   2.1) WISC-S24 has an active low reset input (rst_n). Instructions are executed when rst_n is high.  If rst_n goes low for one clock cycle, the contents of the state of the machine are reset and execution is restarted at address 0x0000.
+   
+4) **Flags**
 
     3.1) Zero (Z) Flag
 
@@ -80,4 +83,4 @@
 >Only the arithmetic instructions (except PADDSB and RED) can change the three flags (Z, V, N).
 >The logical instructions (XOR, SLL, SRA, ROR) change the Z FLAG, but they do not change the N or V flag.
    
-5) Interface
+4) **Interface**
