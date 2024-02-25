@@ -4,6 +4,7 @@ Creating a MIPS-style CPU
 Notes for Organizing Tasks: [here](https://docs.google.com/document/d/1EIT2YE9qVkbk8FTKkhfBuAA56mgEnbDFtGcCBj3Gh_Q/edit?usp=sharing)
 
 ## Phase 1
+### WISC-S24 ISA Specifications
 1) **Compute Instructions**
 
     1.1) Saturating Arithmetic for add sub and pad sub (4 word add/sub)
