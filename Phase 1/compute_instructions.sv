@@ -91,25 +91,24 @@ wire [15:0] ashift3, ashift2,ashift1,ashift0;
 endmodule
 
 
-module RED (rs, rd, Sum); 
+module RED (rs, rt, Sum); 
 input [15, 0] rs, rd; // Input Data Values
-output Sum; // Final Sum of Values
+output [8:0] Sum; // Final Sum of Values
 
-wire [9:0] totalsumAB;
-wire [9:0] totalsumCD;
-wire [8:0] sumAB;
-wire [8:0] sumCD;
-wire [3:0] carry;
-wire [3:0] ovfl;
+wire [8:0] totalsumAB;
+wire [8:0] totalsumCD;
+wire [7:0] sumAB;
+wire [7:0] sumCD;
+wire [1:0] carry;
 
 //tree layer 1
-carry_look_ahead CLA1 [1:0] (.Sum(sumAB), .Ovfl(ovfl[0]), .A(rs[15:8]), .B(rs[7:0]), .Cin(), .Cout(carry[0]));
-carry_look_ahead CLA2 [1:0] (.Sum(sumCD), .Ovfl(ovfl[1]), .A(rt[15:8]), .B(rt[7:0]), .Cin(carry[0]), .Cout(carry[1]));
+carry_look_ahead CLA1 [1:0] (.Sum(sumAB), .Ovfl(), .A(rs[15:8]), .B(rs[7:0]), .Cin(0), .Cout(carry[0]));
+carry_look_ahead CLA2 [1:0] (.Sum(sumCD), .Ovfl(), .A(rt[15:8]), .B(rt[7:0]), .Cin(0), .Cout(carry[1]));
 totalsumAB = {carry[0], sumAB}
 totalsumCD = {carry[1], sumCD}
 
 //tree layer 2
-carry_look_ahead CLA3 [2:0] (.Sum(sumAB), .Ovfl(ovfl[0]), .A(totalsumAB), .B(rs[7:0]), .Cin(), .Cout(carry[0]));
+carry_look_ahead CLA3 [2:0] (.Sum(Sum), .Ovfl(), .A(totalsumAB), .B(totalsumCD), .Cin(0), .Cout());
 
 endmodule
 
