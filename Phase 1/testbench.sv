@@ -1,28 +1,87 @@
-//Simple 1 bit adder
-module full_adder_1bit (input A, input B, input Cin, output S, output Cout);
-	assign S = A ^ B ^ Cin;
-	assign Cout = (A&B) | (Cin & (A | B));
+module t_RED();
+logic signed [15:0] rs, rt;
+logic [15:0] Sum;
+
+RED redDUT (.rs(rs), .rt(rt), .Sum(Sum));
+
+initial begin
+	rs = 16'h1111;
+	rt = 16'h1111;
+	#5
+	if(Sum != 16'h2222) begin	
+		$display("Sum is %h, when it should be %h", Sum, 16'h2222);
+		$stop();
+	end
+	#5;
+end
 endmodule
+module saturate_tb();
+logic signed [15:0] A,B;
+logic [15:0] Sum; //sum output
+logic Ovfl; //To indicate overflow
+logic pad;
 
-//Instantiates full_adder_1bit to make it 4 wide
-//overflow is determined by seperate logic than carry out
-module addsub_4bit (Sum, Ovfl, A, B, sub);
-	input [3:0] A, B; //Input values
-	input sub; // add-sub indicator
-	output [3:0] Sum; //sum output
-	output Ovfl; //To indicate overflow
-	wire [3:0] interC;
-	wire [3:0] interB;
-	assign interB = sub ? ~B : B;
+addsub_16bit DUT (.Sum(Sum), .Error(Ovfl), .A(A), .B(B), .pad(pad));
 
-	//note interB is not technically full2s compliment, but its close enough for the calculation needed
-	assign Ovfl = (Sum[3] ? (~A[3]&~interB[3]) : (A[3] & interB[3])); 
-	full_adder_1bit FA [3:0]  (.A(A),.B(interB),.Cin({interC[2:0],sub}),.Cout(interC),.S(Sum));
+initial begin
+	pad = '1;
+	A = 16'h8009;
+	B = 16'h9009;
+	#5
+	if(Sum != 16'h8008) begin
+		$display("Sum is %h, when it should be %h", Sum, 16'h8008);
+		$stop();
+	end
+	if(!Ovfl) begin
+		$display("Should be negative overflow");
+		$stop();
+	end
+	#5
+	A = 16'h0FD8;
+	B = 16'h0019;
+	#5
+	if(Sum != 16'h0FE8) begin
+		$display("Sum is %h, when it should be %h", Sum, 16'h0FEF);
+		$stop();
+	end
+	if(!Ovfl) begin
+		$display("Should be positive overflow");
+		$stop();
+	end
+	#5
+	pad = !pad;
+	A = 16'h8800;
+	B = 16'h8901;
+	#5
+	if(Sum != 16'h8000) begin
+		$display("Sum is %h, when it should be %h", Sum, 16'h8000);
+		$stop();
+	end
+	if(!Ovfl) begin
+		$display("Should be negative overflow");
+		$stop();
+	end
+	#5
+	A = 16'h7FFF;
+	B = 16'h0001;
+	#5
+	if(Sum != 16'h7FFF) begin
+		$display("Sum is %h, when it should be %h", Sum, 16'h7FFF);
+		$stop();
+	end
+	if(!Ovfl) begin
+		$display("Should be positive overflow");
+		$stop();
+	end
+	#10
+		$display("Yahoooo!! Test passed");
+		$stop();
+end
 endmodule
 
 //Test bench fo 4 bit adder
 `timescale 1ns/100ps
-module t_addsub_4bit;
+module t_carry_look_ahead;
 	logic signed [3:0] a;
 	logic signed  [3:0] b;
 	//These ints are used to calculate overflow later. This is so the same
@@ -34,7 +93,7 @@ module t_addsub_4bit;
 	reg iover;
 	wire signed [3:0] sum;
 	
-	addsub_4bit iDUT (.Sum(sum),.Ovfl(iover),.A(a),.B(b),.sub(sub));
+	carry_look_ahead iDUT (.Sum(sum),.Ovfl(iover),.A(a),.B(b),.sub(sub));
 
 	initial begin
 		 a = '0;
@@ -219,44 +278,3 @@ module t_ALU;
 	end
 
 endmodule
-module ALU (ALU_Out, Error, ALU_In1, ALU_In2, Opcode);
-input [3:0] ALU_In1, ALU_In2;
-input [1:0] Opcode; 
-output reg [3:0] ALU_Out;
-output reg Error; // Just to show overflow
-wire [3:0] sum;
-wire ovfl;
-reg flag;
-
-	addsub_4bit Adder (.Sum(sum),.Ovfl(ovfl),.A(ALU_In1),.B(ALU_In2),.sub(Opcode[0]));
-	always @ (Opcode, ALU_In1, ALU_In2) begin
-		case (Opcode)
-		2'b10 :
-		begin	ALU_Out = ~(ALU_In1 & ALU_In2);
-			Error = 0'b0;
-			flag = 0'b0;
-		end
-		2'b11 :
-		begin	ALU_Out = ALU_In1 ^ ALU_In2;
-			Error = 0'b0;
-			flag = 0'b0;
-		end
-		2'b00:
-		begin	ALU_Out = sum;
-			Error = ovfl;
-			flag = 0'b0;
-		end
-		2'b01:
-		begin	ALU_Out = sum;
-			Error = ovfl;
-			flag = 0'b0;
-		end
-		//This case should never be reached. If it is, testbench
-		//should throw and error
-		default:
-			flag = 1'b1;
-		endcase
-	end
-
-endmodule
-
