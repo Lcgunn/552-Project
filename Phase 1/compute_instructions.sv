@@ -1,13 +1,28 @@
 //CLA
-module carry_look_ahead(A, B Cin, Cout);
-input [3:0] A, B, Cin;
-output [3:0] Cout;
-wire [3:0] ABxor, AB, CandAB;
-// Xor AB
-assign Cout[0] = ((A[0] ^ B[0]) & C[0]) | (A[0] & B[0]);
-assign Cout[1] = ((A[1] ^ B[1]) & C[1]) | (A[1] & B[1]);
-assign Cout[2] = ((A[2] ^ B[2]) & C[2]) | (A[2] & B[2]);
-assign Cout[3] = ((A[3] ^ B[3]) & C[3]) | (A[3] & B[3]);
+module carry_look_ahead(A, B, Cin, Cout, Sum);
+input [3:0] A, B;
+input Cin;
+output Cout;
+wire [3:0] P, G;
+
+// Get propagate for each bit
+assign P[0] = A[0] ^ B[0];
+assign P[1] = A[1] ^ B[1];
+assign P[2] = A[2] ^ B[2];
+assign P[3] = A[3] ^ B[3];
+
+// Get generate for each bit
+assign G[0] = A[0] & B[0];
+assign G[1] = A[1] & B[1];
+assign G[2] = A[2] & B[2];
+assign G[3] = A[3] & B[3];
+
+// Calculate carry-outs
+//assign Cout[0] = G[0] ^ (P[0]&Cin);
+//assign Cout[1] = G[1] ^ (P[1]&G[0]) ^(P[1]&P[0]&Cin);
+//assign Cout[2] = G[2] ^ (P[2]&G[1]) ^ (P[2]&P[1]&G[0]) ^(P[2]P[1]&P[0]&Cin);
+assign Cout = G[3] | (P[3]&G[2]) | (P[3]&P[2]&G[1]) | (P[3]&P[2]&P[1]&G[0]) | (P[3]&P[2]&P[1]&P[0]&Cin);
+
 endmodule
 
 //Simple 1 bit adder
@@ -18,10 +33,9 @@ endmodule
 
 //Instantiates full_adder_1bit to make it 4 wide
 //overflow is determined by seperate logic than carry out
-module addsub_4bit (Sum, Ovfl, A, B, sub, pad, cin);
-	input [3:0] A, B; //Input values
-	input sub; // add-sub indicator
+module addsub_4bit (Sum, Ovfl, A, B, pad, cin);
 	input pad; //pad-notpad indicator
+	input [3:0] A, B; //Input values
 	input cin;
 	output [3:0] Sum; //sum output
 	output Ovfl; //To indicate overflow
@@ -31,7 +45,7 @@ module addsub_4bit (Sum, Ovfl, A, B, sub, pad, cin);
 	wire [3:0] interB;
 	wire [3:0] interSum;
 	assign interB = sub ? ~B : B;
-	assign interCin = (pad) ? sub : cin ^ sub;
+	assign interCin = (pad) ? '0 : cin;
 
 	//note interB is not technically full2s compliment, but its close enough for the calculation needed
 	assign Ovfl = (interSum[3] ? (~A[3]&~interB[3]) : (A[3] & interB[3])); 
@@ -42,21 +56,29 @@ module addsub_4bit (Sum, Ovfl, A, B, sub, pad, cin);
 endmodule
 
 
-module addsub_16bit (Sum, Error, A, B, pad);
+module addsub_16bit (Sum, Error, A, B, sub, pad);
 input [15:0] A, B; 	// Input data values
+input sub;			// To indicate sub or add
 input pad;			// To indicate pad or not pad
 output [15:0] Sum; 	// Sum output
-output Error; 	// To indicate overflows
+output Error; 		// To indicate overflows
+
+// 
 wire [15:0] interSum;
 wire [3:0] temp_error;
+wire [3:0] carry;
 assign Error = (pad)? (temp_error[0] | temp_error[1] | temp_error[2] | temp_error[3]) 
 		: (interSum[15] ? (~A[15]&~B[15]) : (A[15] & B[15]));
 assign Sum = (pad) ? interSum : ((Error) ? ((~A[15])? 16'h7FFF : 16'h8000) : interSum);
-addsub_4bit Partial1 (.Sum(interSum[3:0]), .Ovfl(temp_error[0]), .A(A[3:0]), .B(B[3:0]), .sub('0), .pad(pad), .cin('0));
-addsub_4bit Partial2 (.Sum(interSum[7:4]), .Ovfl(temp_error[1]), .A(A[7:4]), .B(B[7:4]), .sub('0), .pad(pad), .cin(temp_error[0]));
-addsub_4bit Partial3 (.Sum(interSum[11:8]), .Ovfl(temp_error[2]), .A(A[11:8]), .B(B[11:8]), .sub('0), .pad(pad), .cin(temp_error[1]));
-addsub_4bit Partial4 (.Sum(interSum[15:12]), .Ovfl(temp_error[3]), .A(A[15:12]), .B(B[15:12]), .sub('0), .pad(pad), .cin(temp_error[2]));
+
+// Carry Look Ahead
+carry_look_ahead CLA [3:0] (.A(A), .B(B), .Cin({carry[2:0],sub}), .Cout(carry));
+
+
+// Add/Sub
+addsub_4bit Partial [3:0] (.Sum(interSum), .Ovfl(temp_error), .A(A), .B(B), .pad(pad), .cin({carry[2:0],sub}));
 endmodule
+
 
 module Shifter (Shift_Out, Shift_In, Shift_Val, Mode);
 input [15:0] Shift_In; 	// This is the input data to perform shift operation on
@@ -74,6 +96,25 @@ wire [15:0] ashift3, ashift2,ashift1,ashift0;
 //sim:/saturate_tb/Ovfl
 	assign Shift_Out = Mode ? ashift0 : shift0;
 endmodule
+
+
+module RED (A, B, C, D);
+input [7:0] A, B, C, D; // Input Data Values
+output Sum; // Final Sum of Values
+
+wire [8:0] sumAB;
+wire [8:0] sumCD;
+
+carry_look_ahead CLA1 [
+
+
+
+endmodule
+
+
+
+
+
 
 module saturate_tb();
 logic signed [15:0] A,B;
