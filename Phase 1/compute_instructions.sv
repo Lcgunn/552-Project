@@ -1,4 +1,3 @@
-
 //Simple 1 bit adder
 module full_adder_1bit (input A, input B, input Cin, output S, output Cout);
 	assign S = A ^ B ^ Cin;
