@@ -1,29 +1,3 @@
-//CLA
-module carry_look_ahead(A, B, Cin, Cout, Sum);
-input [3:0] A, B;
-input Cin;
-output Cout;
-wire [3:0] P, G;
-
-// Get propagate for each bit
-assign P[0] = A[0] ^ B[0];
-assign P[1] = A[1] ^ B[1];
-assign P[2] = A[2] ^ B[2];
-assign P[3] = A[3] ^ B[3];
-
-// Get generate for each bit
-assign G[0] = A[0] & B[0];
-assign G[1] = A[1] & B[1];
-assign G[2] = A[2] & B[2];
-assign G[3] = A[3] & B[3];
-
-// Calculate carry-outs
-//assign Cout[0] = G[0] ^ (P[0]&Cin);
-//assign Cout[1] = G[1] ^ (P[1]&G[0]) ^(P[1]&P[0]&Cin);
-//assign Cout[2] = G[2] ^ (P[2]&G[1]) ^ (P[2]&P[1]&G[0]) ^(P[2]P[1]&P[0]&Cin);
-assign Cout = G[3] | (P[3]&G[2]) | (P[3]&P[2]&G[1]) | (P[3]&P[2]&P[1]&G[0]) | (P[3]&P[2]&P[1]&P[0]&Cin);
-
-endmodule
 
 //Simple 1 bit adder
 module full_adder_1bit (input A, input B, input Cin, output S, output Cout);
@@ -33,12 +7,13 @@ endmodule
 
 //Instantiates full_adder_1bit to make it 4 wide
 //overflow is determined by seperate logic than carry out
-module addsub_4bit (Sum, Ovfl, A, B, pad, cin);
+module carry_look_ahead (Sum, Ovfl, A, B, pad, cin, Cout);
 	input pad; //pad-notpad indicator
 	input [3:0] A, B; //Input values
 	input cin;
 	output [3:0] Sum; //sum output
 	output Ovfl; //To indicate overflow
+	output Cout;
 	wire ovfl;
 	wire interCin;
 	wire [3:0] interC;
@@ -46,6 +21,25 @@ module addsub_4bit (Sum, Ovfl, A, B, pad, cin);
 	wire [3:0] interSum;
 	assign interB = sub ? ~B : B;
 	assign interCin = (pad) ? '0 : cin;
+	wire [3:0] P, G;
+
+	// Get propagate for each bit
+	assign P[0] = A[0] ^ B[0];
+	assign P[1] = A[1] ^ B[1];
+	assign P[2] = A[2] ^ B[2];
+	assign P[3] = A[3] ^ B[3];
+
+	// Get generate for each bit
+	assign G[0] = A[0] & B[0];
+	assign G[1] = A[1] & B[1];
+	assign G[2] = A[2] & B[2];
+	assign G[3] = A[3] & B[3];
+
+	// Calculate carry-outs
+	//assign Cout[0] = G[0] ^ (P[0]&Cin);
+	//assign Cout[1] = G[1] ^ (P[1]&G[0]) ^(P[1]&P[0]&Cin);
+	//assign Cout[2] = G[2] ^ (P[2]&G[1]) ^ (P[2]&P[1]&G[0]) ^(P[2]P[1]&P[0]&Cin);
+	assign Cout = G[3] | (P[3]&G[2]) | (P[3]&P[2]&G[1]) | (P[3]&P[2]&P[1]&G[0]) | (P[3]&P[2]&P[1]&P[0]&Cin);
 
 	//note interB is not technically full2s compliment, but its close enough for the calculation needed
 	assign Ovfl = (interSum[3] ? (~A[3]&~interB[3]) : (A[3] & interB[3])); 
@@ -74,9 +68,8 @@ assign Sum = (pad) ? interSum : ((Error) ? ((~A[15])? 16'h7FFF : 16'h8000) : int
 // Carry Look Ahead
 carry_look_ahead CLA [3:0] (.A(A), .B(B), .Cin({carry[2:0],sub}), .Cout(carry));
 
-
 // Add/Sub
-addsub_4bit Partial [3:0] (.Sum(interSum), .Ovfl(temp_error), .A(A), .B(B), .pad(pad), .cin({carry[2:0],sub}));
+carry_look_ahead Partial [3:0] (.Sum(interSum), .Ovfl(temp_error), .A(A), .B(B), .pad(pad), .cin({carry[2:0],sub}));
 endmodule
 
 
@@ -98,16 +91,25 @@ wire [15:0] ashift3, ashift2,ashift1,ashift0;
 endmodule
 
 
-module RED (A, B, C, D);
-input [7:0] A, B, C, D; // Input Data Values
+module RED (rs, rd, Sum); 
+input [15, 0] rs, rd; // Input Data Values
 output Sum; // Final Sum of Values
 
+wire [9:0] totalsumAB;
+wire [9:0] totalsumCD;
 wire [8:0] sumAB;
 wire [8:0] sumCD;
+wire [3:0] carry;
+wire [3:0] ovfl;
 
-carry_look_ahead CLA1 [
+//tree layer 1
+carry_look_ahead CLA1 [1:0] (.Sum(sumAB), .Ovfl(ovfl[0]), .A(rs[15:8]), .B(rs[7:0]), .Cin(), .Cout(carry[0]));
+carry_look_ahead CLA2 [1:0] (.Sum(sumCD), .Ovfl(ovfl[1]), .A(rt[15:8]), .B(rt[7:0]), .Cin(carry[0]), .Cout(carry[1]));
+totalsumAB = {carry[0], sumAB}
+totalsumCD = {carry[1], sumCD}
 
-
+//tree layer 2
+carry_look_ahead CLA3 [2:0] (.Sum(sumAB), .Ovfl(ovfl[0]), .A(totalsumAB), .B(rs[7:0]), .Cin(), .Cout(carry[0]));
 
 endmodule
 
@@ -182,7 +184,7 @@ endmodule
 
 //Test bench fo 4 bit adder
 `timescale 1ns/100ps
-module t_addsub_4bit;
+module t_carry_look_ahead;
 	logic signed [3:0] a;
 	logic signed  [3:0] b;
 	//These ints are used to calculate overflow later. This is so the same
@@ -194,7 +196,7 @@ module t_addsub_4bit;
 	reg iover;
 	wire signed [3:0] sum;
 	
-	addsub_4bit iDUT (.Sum(sum),.Ovfl(iover),.A(a),.B(b),.sub(sub));
+	carry_look_ahead iDUT (.Sum(sum),.Ovfl(iover),.A(a),.B(b),.sub(sub));
 
 	initial begin
 		 a = '0;
@@ -388,7 +390,7 @@ wire [3:0] sum;
 wire ovfl;
 reg flag;
 
-	addsub_4bit Adder (.Sum(sum),.Ovfl(ovfl),.A(ALU_In1),.B(ALU_In2),.sub(Opcode[0]));
+	carry_look_ahead Adder (.Sum(sum),.Ovfl(ovfl),.A(ALU_In1),.B(ALU_In2),.sub(Opcode[0]));
 	always @ (Opcode, ALU_In1, ALU_In2) begin
 		case (Opcode)
 		2'b10 :
