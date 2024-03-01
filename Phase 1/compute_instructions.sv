@@ -7,10 +7,11 @@ endmodule
 
 //Instantiates full_adder_1bit to make it 4 wide
 //overflow is determined by seperate logic than carry out
-module carry_look_ahead (Sum, Ovfl, A, B, pad, cin, Cout);
+module carry_look_ahead (Sum, Ovfl, A, B, sub, pad, Cin, Cout);
 	input pad; //pad-notpad indicator
 	input [3:0] A, B; //Input values
-	input cin;
+	input Cin;
+	input sub;
 	output [3:0] Sum; //sum output
 	output Ovfl; //To indicate overflow
 	output Cout;
@@ -20,7 +21,7 @@ module carry_look_ahead (Sum, Ovfl, A, B, pad, cin, Cout);
 	wire [3:0] interB;
 	wire [3:0] interSum;
 	assign interB = sub ? ~B : B;
-	assign interCin = (pad) ? '0 : cin;
+	assign interCin = (pad) ? '0 : Cin;
 	wire [3:0] P, G;
 
 	// Get propagate for each bit
@@ -92,28 +93,46 @@ endmodule
 
 
 module RED (rs, rt, Sum); 
-input [15, 0] rs, rd; // Input Data Values
-output [8:0] Sum; // Final Sum of Values
+input [15: 0] rs, rt; // Input Data Values
+output [15:0] Sum; // Final Sum of Values
 
 wire [8:0] totalsumAB;
 wire [8:0] totalsumCD;
 wire [7:0] sumAB;
 wire [7:0] sumCD;
 wire [1:0] carry;
+wire [11:0] interSum;
 
 //tree layer 1
-carry_look_ahead CLA1 [1:0] (.Sum(sumAB), .Ovfl(), .A(rs[15:8]), .B(rs[7:0]), .Cin(0), .Cout(carry[0]));
-carry_look_ahead CLA2 [1:0] (.Sum(sumCD), .Ovfl(), .A(rt[15:8]), .B(rt[7:0]), .Cin(0), .Cout(carry[1]));
-totalsumAB = {carry[0], sumAB}
-totalsumCD = {carry[1], sumCD}
+carry_look_ahead CLA1 [1:0] (.Sum(sumAB), .Ovfl(), .A(rs[15:8]), .B(rs[7:0]), .Cin('0), .Cout(carry[0]));
+carry_look_ahead CLA2 [1:0] (.Sum(sumCD), .Ovfl(), .A(rt[15:8]), .B(rt[7:0]), .Cin('0), .Cout(carry[1]));
+assign totalsumAB = ({carry[0], sumAB});
+assign totalsumCD = ({carry[1], sumCD});
+
+assign Sum = {{6{interSum[9]}}, interSum};
 
 //tree layer 2
-carry_look_ahead CLA3 [2:0] (.Sum(Sum), .Ovfl(), .A(totalsumAB), .B(totalsumCD), .Cin(0), .Cout());
+carry_look_ahead CLA3 [2:0] (.Sum(interSum), .Ovfl(), .A({{3{totalsumAB[7]}}, totalsumAB}), .B({{3{totalsumCD[7]}}, totalsumCD}), .Cin('0), .Cout());
 
 endmodule
 
+module RED_tb();
+logic signed [15:0] rs, rt;
+logic [15:0] Sum;
 
+RED redDUT (.rs(rs), .rt(rt), .Sum(Sum));
 
+initial begin
+	rs = 16'h1111;
+	rt = 16'h1111;
+	#5
+	if(Sum != 16'h2222) begin	
+		$display("Sum is %h, when it should be %h", Sum, 16'h2222);
+		$stop();
+	end
+	#5;
+end
+endmodule
 
 
 
