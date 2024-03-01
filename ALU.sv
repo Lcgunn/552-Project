@@ -1,16 +1,18 @@
-module ALU (output [15:0] ALU_Out,input [3:0] opcode, input [15:0] operand1, input [15:0] operand2);
+module ALU (output [15:0] ALU_Out, output [2:0] flags, input [3:0] opcode, input [15:0] operand1, input [15:0] operand2);
 	wire[15:0] inter_adder, inter_shift, inter_RED, ALU_Out;
 	
 	wire [3:0] shift_mode;
 	reg [2:0] flags;//OVERFLOW[2]. NEGATIVE [1], ZERO IS [0]
 	wire temp_Ovfl
-	PSA_16bit adder (.Sum(inter_adder),.Ovfl(temp_Ovfl), .A(operand1),.B(operand2),.Sub);
+	wire sub;
+	PSA_16bit adder (.Sum(inter_adder),.Ovfl(temp_Ovfl), .A(operand1),.B(operand2),.Sub(sub),.pad());//FIXME SUB should be implemented
 	//Operand2 [3;0]
 	Shifter shift(.Shift_out(inter_shift),.Shift_In(operand1),.Shift_Val(operand2[3:0]),.Mode(shift_mode));
+	//RED
 	reg error;
 	always @ opcode begin
 	flags = '0;
-		case (opcode [15:12])
+		case (opcode)
 		(4'h0000): //Add
 			ALU_Out = inter_adder;
 			flags[0]= |ALU_Out;
@@ -33,8 +35,7 @@ module ALU (output [15:0] ALU_Out,input [3:0] opcode, input [15:0] operand1, inp
 		(4'h0100): //SLL
 			ALU_Out = inter_shift;
 			shift_mode = 00;
-			/
-		flags[0]= |ALU_Out;
+			flags[0]= |ALU_Out;
 			error = 1'b0;
 		(4'h0101): //SRA
 		flags[0]= |ALU_Out;
@@ -45,6 +46,7 @@ module ALU (output [15:0] ALU_Out,input [3:0] opcode, input [15:0] operand1, inp
 		(4'h0111): //PADDSB
 			error = 1'b0;
 		(4'h1000): //LW
+			
 			error = 1'b0;
 		(4'h1001): //SW
 			error = 1'b0;
