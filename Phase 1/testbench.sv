@@ -15,16 +15,19 @@ initial begin
 	#5;
 end
 endmodule
+
 module saturate_tb();
 logic signed [15:0] A,B;
 logic [15:0] Sum; //sum output
 logic Ovfl; //To indicate overflow
 logic pad;
+logic isub;
 
-addsub_16bit DUT (.Sum(Sum), .Error(Ovfl), .A(A), .B(B), .pad(pad));
+addsub_16bit DUT (.Sum(Sum), .Error(Ovfl), .A(A), .B(B), .sub(isub), .pad(pad));
 
 initial begin
 	pad = '1;
+	isub = '0;
 	A = 16'h8009;
 	B = 16'h9009;
 	#5
@@ -73,9 +76,26 @@ initial begin
 		$display("Should be positive overflow");
 		$stop();
 	end
+	repeat (8) begin
+	pad = '0;
+	isub = '1;
+	A = $random();
+	B = $random();
+	#5;
+	
+	end
+	repeat (8) begin
+	pad = '0;
+	isub = '0;
+	A = $random();
+	B = $random();
+	#5;
+	
+	end
 	#10
 		$display("Yahoooo!! Test passed");
 		$stop();
+		
 end
 endmodule
 
