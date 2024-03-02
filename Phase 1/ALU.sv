@@ -2,11 +2,12 @@ module ALU (output [15:0] ALU_Out, output [2:0] flags, input [3:0] opcode, input
 	wire[15:0] inter_adder;		// Output for adder (LW & SW too)
 	wire [15:0] inter_shift;	// Output for shift
 	wire [15:0] inter_RED;		// Output for red
+	reg [15:0] inter_ALU_Out;
 
-	wire [3:0] shift_mode;
+	reg [3:0] shift_mode;
 	reg [2:0] flaginput;//OVERFLOW[2]. NEGATIVE [1], ZERO IS [0]
 	reg [2:0] flag_enable;
-	wire [15:0] inter_operand2;
+	reg [15:0] inter_operand2;
 	wire temp_Ovfl;
 	reg isub, ipad;
 	// Implementing ADD/SUB/PADDSB
@@ -20,6 +21,9 @@ module ALU (output [15:0] ALU_Out, output [2:0] flags, input [3:0] opcode, input
 	
 	dff Conditions [2:0] (.q(flags),.d(flaginput), .wen(flag_enable), .clk(clk), .rst(rst));
 	//RED
+
+	assign ALU_Out = inter_ALU_Out;
+
 	reg error;
 	always @ opcode begin
 	isub = '0;
@@ -27,64 +31,80 @@ module ALU (output [15:0] ALU_Out, output [2:0] flags, input [3:0] opcode, input
 	flag_enable = '0;
 	inter_operand2 = operand2;
 		case (opcode)
-		(4'h0000): //Add
-			ALU_Out = inter_adder;
-			flaginput[0]= ~(|ALU_Out);	// If all bits are zero flag is 1
-			flaginput[1]= ALU_Out[15];	// If MSB of sum is 1, then negative
+		(4'b0000): begin//Add
+			inter_ALU_Out = inter_adder;
+			flaginput[0] = ~(|inter_ALU_Out);	// If all bits are zero flag is 1
+			flaginput[1] = inter_ALU_Out[15];	// If MSB of sum is 1, then negative
 			flaginput[2] = temp_Ovfl;	// If overflow, then overflow flag is 1
 			error = 1'b0;
-		(4'h0001): //Sub
-			sub = '1;
-			ALU_Out = inter_adder;
-			flaginput[0]= ~(|ALU_Out);	// If all bits are zero flag is 1
-			flaginput[1]= ALU_Out[15];	// If MSB of sum is 1, then negative
+			end
+		(4'b0001): begin//Sub
+			isub = '1;
+			inter_ALU_Out = inter_adder;
+			flaginput[0]= ~(|inter_ALU_Out);	// If all bits are zero flag is 1
+			flaginput[1]= inter_ALU_Out[15];	// If MSB of sum is 1, then negative
 			flaginput[2] = temp_Ovfl;	// If overflow, then overflow flag is 1
 			error = 1'b0;
-		(4'h0010): //XOR
-			ALU_Out = operand1 ^ operand2;
-			flaginput[0]= ~(|ALU_Out);		// If all bits are zero flag is 1
+			end
+		(4'b0010): begin //XOR
+			inter_ALU_Out = operand1 ^ operand2;
+			flaginput[0]= ~(|inter_ALU_Out);		// If all bits are zero flag is 1
 			error = 1'b0;
-		(4'h0011): //RED
-			ALU_Out = inter_RED;
+			end
+		(4'b0011): begin//RED
+			inter_ALU_Out = inter_RED;
 			error = 1'b0;
-		(4'h0100): //SLL
+			end
+		(4'b0100): begin //SLL
 			shift_mode = 2'b00;
-			ALU_Out = inter_shift;
-			flaginput[0]= ~(|ALU_Out);	// If all bits are zero flag is 1
+			inter_ALU_Out = inter_shift;
+			flaginput[0]= ~(|inter_ALU_Out);	// If all bits are zero flag is 1
 			error = 1'b0;
-		(4'h0101): //SRA
+			end
+		(4'b0101): begin //SRA
 			shift_mode = 2'b01;
-			ALU_Out = inter_shift;
-			flaginput[0]= ~(|ALU_Out);	// If all bits are zero flag is 1
+			inter_ALU_Out = inter_shift;
+			flaginput[0]= ~(|inter_ALU_Out);	// If all bits are zero flag is 1
 			error = 1'b0;
-		(4'h0110): //ROR
+			end
+		(4'b0110): begin //ROR
 			shift_mode = 2'b10;			// Mode can be 10 or 11
-			ALU_Out = inter_shift;
-			flaginput[0]= ~(|ALU_Out);	// If all bits are zero flag is 1
+			inter_ALU_Out = inter_shift;
+			flaginput[0]= ~(|inter_ALU_Out);	// If all bits are zero flag is 1
 			error = 1'b0;
-		(4'h0111): //PADDSB
-			pad = '1;
+			end
+		(4'b0111): begin //PADDSB
+			ipad = '1;
 			error = 1'b0;
-		(4'h1000): //LW
+			end
+		(4'b1000): begin //LW
 			inter_operand2 = operand2 << 1;
-			ALU_Out = inter_adder;
+			inter_ALU_Out = inter_adder;
 			error = 1'b0;
-		(4'h1001): //SW
+			end
+		(4'b1001): begin //SW
 			inter_operand2 = operand2 << 1;
-			ALU_Out = inter_adder;
+			inter_ALU_Out = inter_adder;
 			error = 1'b0;
-		(4'h1010): //LLB
+			end
+		(4'b1010): begin //LLB
 			error = 1'b0;
-		(4'h1011): //LHB
+			end
+		(4'b1011): begin //LHB
 			error = 1'b0;
-		(4'h1100): //B
+			end
+		(4'b1100): begin //B
 			error = 1'b0;
-		(4'h1101): //BR
+			end
+		(4'b1101): begin //BR
 			error = 1'b0;
-		(4'h1110): //PCS
+			end
+		(4'b1110): begin //PCS
 			error = 1'b0;
-		(4'h1111): //HLT
+			end
+		(4'b1111): begin //HLT
 			error = 1'b0;
+			end
 		default:
 			error =1'b1;
 		endcase
