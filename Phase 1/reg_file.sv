@@ -48,30 +48,3 @@ module RegisterFile(input clk, input rst, input [3:0] SrcReg1, input [3:0] SrcRe
 	WriteDecoder_4_16 write_d  (.RegId(DstReg),.WriteReg(WriteReg),.Wordline(write_en));
 	Register regs [15:0] (.clk(clk),  .rst(rst), .D(DstData), .WriteReg(write_en), .ReadEnable1(read_1en), .ReadEnable2(read_2en), .Bitline1(SrcData1), .Bitline2(SrcData2));
 endmodule
-
-
-module t_RegisterFile();
-logic clk,rst,WriteReg;
-logic [3:0] SrcReg1,SrcReg2,DstReg;
-logic [15:0] DstData, SrcData1, SrcData2;
-	RegisterFile iDUT (.clk(clk),.rst(rst),.SrcReg1(SrcReg1),.SrcReg2(SrcReg2),.DstReg(DstReg),.WriteReg(WriteReg),.DstData(DstData),.SrcData1(SrcData1),.SrcData2(SrcData2));
-	always
-		#5 clk <= ~clk;
-	initial begin
-		clk = 0;
-		rst = 1;
-		#10
-		assert(DstData === '0 & SrcData1 === '0 & SrcData2 === '0)
-		else begin
-			$display("Bad Reset");
-			$stop();
-		end
-		#10
-		$display("Wahooooo!!! Test Passed");
-		$stop();
-
-	
-	
-	
-	end
-endmodule
