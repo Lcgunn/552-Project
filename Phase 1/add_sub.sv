@@ -15,13 +15,12 @@ output Error; 		// To indicate overflows
 wire [15:0] interSum;
 wire [3:0] temp_error;
 wire [3:0] carry;
+wire [15:0] interB;
+assign interB = sub ? ~B : B;
 assign Error = (pad)? (temp_error[0] | temp_error[1] | temp_error[2] | temp_error[3]) 
-		: (interSum[15] ? (~A[15]&~B[15]) : (A[15] & B[15]));
+		: (interSum[15] ? (~A[15]&~interB[15]) : (A[15] & interB[15]));
 assign Sum = (pad) ? interSum : ((Error) ? ((~A[15])? 16'h7FFF : 16'h8000) : interSum);
 
-// Carry Look Ahead
-carry_look_ahead CLA [3:0] (.A(A), .B(B), .Cin({carry[2:0],sub}), .Cout(carry));
-
 // Add/Sub
-carry_look_ahead Partial [3:0] (.Sum(interSum), .Ovfl(temp_error), .A(A), .B(B), .pad(pad), .cin({carry[2:0],sub}));
+carry_look_ahead Partial [3:0] (.Sum(interSum), .Ovfl(temp_error), . Cout(carry),.A(A), .B(interB), .pad(pad), .Cin({carry[2:0],sub}));
 endmodule
