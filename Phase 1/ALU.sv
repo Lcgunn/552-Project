@@ -7,14 +7,14 @@ module ALU (output [15:0] ALU_Out, output [2:0] flags, input [3:0] opcode, input
 	reg [3:0] shift_mode;
 	reg [2:0] flaginput;//OVERFLOW[2]. NEGATIVE [1], ZERO IS [0]
 	reg [2:0] flag_enable;
-	reg [15:0] inter_operand2;
+	reg [15:0] inter_operand2, inter_operand1;
 	wire temp_Ovfl;
 	reg isub, ipad;
 	// Implementing ADD/SUB/PADDSB
-	PSA_16bit adder (.Sum(inter_adder),.Ovfl(temp_Ovfl), .A(operand1),.B(inter_operand2),.sub(isub),.pad(ipad));//FIXME SUB should be implemented
+	PSA_16bit adder (.Sum(inter_adder),.Ovfl(temp_Ovfl), .A(inter_operand1),.B(inter_operand2),.sub(isub),.pad(ipad));//FIXME SUB should be implemented
 	
 	// Implementing SLL/SRA/ROR
-	Shifter shift(.Shift_out(inter_shift),.Shift_In(operand1),.Shift_Val(operand2[3:0]),.Mode(shift_mode));
+	Shifter shift(.Shift_out(inter_shift),.Shift_In(inter_operand1),.Shift_Val(operand2[3:0]),.Mode(shift_mode));
 
 	// Implementing RED
 	RED red (.rs(operand1), .rt(operand2), .Sum(inter_RED)); 
@@ -30,6 +30,7 @@ module ALU (output [15:0] ALU_Out, output [2:0] flags, input [3:0] opcode, input
 	ipad = '0;
 	flag_enable = '0;
 	inter_operand2 = operand2;
+	inter_operand1 = operand1;
 		case (opcode)
 		(4'b0000): begin//Add
 			inter_ALU_Out = inter_adder;
@@ -78,19 +79,23 @@ module ALU (output [15:0] ALU_Out, output [2:0] flags, input [3:0] opcode, input
 			error = 1'b0;
 			end
 		(4'b1000): begin //LW
+			inter_operand1 = (operand1 & 16'hFFFE);
 			inter_operand2 = operand2 << 1;
 			inter_ALU_Out = inter_adder;
 			error = 1'b0;
 			end
 		(4'b1001): begin //SW
-			inter_operand2 = operand2 << 1;
+			inter_operand1 = (operand1 & 16'hFFFE);
+			inter_operand2 = operand2 << 1'd1;
 			inter_ALU_Out = inter_adder;
 			error = 1'b0;
 			end
 		(4'b1010): begin //LLB
+			inter_ALU_Out = (operand1 & 16'hFF00) | operand2;
 			error = 1'b0;
 			end
 		(4'b1011): begin //LHB
+			inter_ALU_Out = (operand1 & 16'h00FF) | (operand2 << 1'd8);
 			error = 1'b0;
 			end
 		(4'b1100): begin //B
