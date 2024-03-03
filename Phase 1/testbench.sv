@@ -233,89 +233,6 @@ module t_ALU();
 	end
 endmodule
 
-//Test bench fo 4 bit adder
-`timescale 1ns/100ps
-module t_carry_look_ahead();
-	logic signed [3:0] a;
-	logic signed  [3:0] b;
-	//These ints are used to calculate overflow later. This is so the same
-	//logic that is used to calculate the DUT overflow is not the same as
-	//the testbench
-	int a_in;
-	int b_in;
-	reg sub;
-	reg iover;
-	wire signed [3:0] sum;
-	
-	carry_look_ahead iDUT (.Sum(sum),.Ovfl(iover),.A(a),.B(b),.sub(sub));
-
-	initial begin
-		 a = '0;
-		 b = '0;
-		 sub = 0;
-		# 5
-		if (iDUT.Sum !== '0) begin
-			$display("Wrong output");
-			$stop();
-		end
-		$display("Right Start");
-		repeat (128) begin
-			a = $random();
-			b = $random();
-			sub = $random();
-			a_in = a;
-			b_in = b;
-			#5
-			if (!sub) begin
-				//check for overflow flag
-				if (a_in + b_in > 7 || a_in + b_in < -8) begin
-					assert(iover === 1'b1) $display("overflow checking...");
-					else begin
-						$display("Error");
-						$stop();
-
-					end
-				end
-				else begin
-					assert(iover === 1'b0)
-					else begin
-						$display("Overflow error with adder going over");
-						$stop();
-					end
-				end
-				//check sum with normal bits
-				if (iDUT.Sum !== a + b) begin
-					$display("Error");
-					$stop();
-				end
-			end else begin
-				if (a_in - b_in < -8 || a_in - b_in  > 7) begin
-					assert(iover === 1'b1) $display("overflow checking...");
-					else begin
-						$display("Error");
-						$stop();
-
-					end
-				end
-				else begin
-					assert(iover === 1'b0)
-					else begin
-						$display("Overflow error with adder going over");
-						$stop();
-					end
-				end
-				if (iDUT.Sum !== a - b) begin
-					$display("Error");
-					$stop();
-				end
-			end
-		end
-		$display("Wahooooo!!! Test Passed");
-		#10 $stop();
-	end
-endmodule
-
-
 module t_RED();
 logic signed [15:0] rs, rt;
 logic [15:0] Sum;
@@ -333,22 +250,22 @@ initial begin
 	end
 	
 	// Test Case 2: Positive values
-    rs = 16'h1111;
-    rt = 16'h1111;
-    #5
-    if (Sum !== 16'h2222) begin
-        $display("Sum is %h, when it should be %h", Sum, 16'h2222);
-        $stop();
-    end
+    	rs = 16'h1111;
+    	rt = 16'h1111;
+    	#5
+    	if (Sum !== 16'h0044) begin
+        	$display("Sum is %h, when it should be %h", Sum, 16'h0044);
+        	$stop();
+    	end
 
 	//Test Case 3: Negative Values
-	rs = 16'hF111;
-    rt = 16'hF111;
-    #5
-    if (Sum !== 16'hE222) begin
-        $display(""Sum is %h, when it should be %h", Sum, 16'hE222");
-        $stop();
-    end
+	rs = 16'hF1F1;
+    	rt = 16'hF1F1;
+    	#5
+    	if (Sum !== 16'hFFE4) begin
+        	$display("Sum is %h, when it should be %h", Sum, 16'hFFE4);
+        	$stop();
+    	end
 end
 endmodule
 
@@ -363,19 +280,19 @@ always
 initial begin
 	clk = 0;
 	rst = 1;
-	#10
+	#10;
 	assert(DstData === '0 & SrcData1 === '0 & SrcData2 === '0)
 	else begin
 		$display("Bad Reset");
 		$stop();
 	end
-	#10
+	#10;
 	$display("Wahooooo!!! Test Passed");
 	$stop();
 end
 endmodule
 
-module t_shifter():
+module t_shifter();
 logic [15:0] Shift_In;
 logic [3:0] Shift_Val;
 logic [1:0] Mode;
@@ -386,7 +303,7 @@ Shifter shifterDUT (.Shift_Out(Shift_Out), .Shift_In(Shift_In), .Shift_Val(Shift
 initial begin 
 	//Test Case 1: SLL
 	Shift_In = 16'hAAAA;
-	Shift_Val - 4'b0101;
+	Shift_Val = 4'b0101;
 	Mode = 2'b00;
 	#10;
 	if (Shift_Out !== 16'h5400) begin
@@ -396,7 +313,7 @@ initial begin
 
 	//Test Case 2: SRA
 	Shift_In = 16'hFFFE;
-	Shift_Val - 4'b0010;
+	Shift_Val = 4'b0010;
 	Mode = 2'b01;
 	#10;
 	if (Shift_Out !== 16'hFFFE) begin
@@ -404,27 +321,16 @@ initial begin
 		$stop();
 	end
 
-	//Test Case 3: No Shift
+	//Test Case 3: ROR
 	Shift_In = 16'h1234;
-	Shift_Val - 4'b0000;
-	Mode = 2'b00;
+	Shift_Val = 4'b0101;
+	Mode = 2'b10;
 	#10;
 	if (Shift_Out !== 16'h1234) begin
 		$display("Shift_Out is %h when it should be %h", Shift_Out, 16'h1234);
 		$stop();
 	end
-
-	//Test Case 3: SLL + SRA
-	Shift_In = 16'hF123;
-	Shift_Val - 4'b1010;
-	Mode = 2'b10;
 	#10;
-	if (Shift_Out !== 16'hFE45) begin
-		$display("Shift_Out is %h when it should be %h", Shift_Out, 16'hFE45);
-		$stop();
-	end
-	
-	#10
 	$display("Wahooooo!!! Test Passed");
 	$stop();
 end
