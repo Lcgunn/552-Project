@@ -1,16 +1,18 @@
 `default_nettype none
-module PC_control(input [2:0]C, input [8:0] I, input [2:0] F, input branch, input [15:0] PC_in, output [15:0] PC_out);
+module PC_control(input [2:0]C, input [15:0] I, input [2:0] F, input [1:0] branch, input [15:0] PC_in, output [15:0] PC_out);
 	//Overflow is [2], Negative[1], Zero[0]	
-	//wire [2:0] C;
-	//wire [8:0] I;
-	//wire [2:0] F;
 	reg [15:0] calculated_pc,normal_pc, inter_PC_out;
+	reg [15:0] inter_I;
+
+	// branch = x0: I<<1, branch = x1: I
+	assign inter_I = (branch[0])? I : (I << 1'd1);
 	
 	PSA_16bit normal (.Sum(normal_pc),.Ovfl(), .A(PC_in),. B(16'h0002),.Sub(0),.pad(0));
-	PSA_16bit immediate (.Sum(calculated_pc),.Ovfl(), .A(normal_pc),. B(I << 1),.Sub(0),.pad(0));
+	PSA_16bit immediate (.Sum(calculated_pc),.Ovfl(), .A(normal_pc),. B(inter_I),.Sub(0),.pad(0));
 	
 	// If branch instruction, take the pc decided, else go to next pc address
-	assign PC_out = (branch)? inter_PC_out : normal_pc;
+	// branch = 1x: branch instruction, branch = 0x: not a branch instruction
+	assign PC_out = (branch[1])? inter_PC_out : normal_pc;
 
 	//Watch out for the reset
 	reg error;
