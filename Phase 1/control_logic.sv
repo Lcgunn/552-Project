@@ -108,4 +108,4 @@ module control_logic(input [3:0]Instr, output reg RegDst, output reg [1:0] Branc
 		endcase
 	end
 	
-endmodule 
+endmodule
