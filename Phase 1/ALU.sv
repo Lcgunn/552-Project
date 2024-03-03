@@ -32,14 +32,14 @@ module ALU (output [15:0] ALU_Out, output [2:0] flags, input [3:0] opcode, input
 	inter_operand2 = operand2;
 	inter_operand1 = operand1;
 		case (opcode)
-		(4'b0000): begin//Add
+		(4'b0000): begin //Add
 			inter_ALU_Out = inter_adder;
 			flaginput[0] = ~(|inter_ALU_Out);	// If all bits are zero flag is 1
 			flaginput[1] = inter_ALU_Out[15];	// If MSB of sum is 1, then negative
 			flaginput[2] = temp_Ovfl;	// If overflow, then overflow flag is 1
 			error = 1'b0;
 			end
-		(4'b0001): begin//Sub
+		(4'b0001): begin //Sub
 			isub = '1;
 			inter_ALU_Out = inter_adder;
 			flaginput[0]= ~(|inter_ALU_Out);	// If all bits are zero flag is 1
@@ -52,7 +52,7 @@ module ALU (output [15:0] ALU_Out, output [2:0] flags, input [3:0] opcode, input
 			flaginput[0]= ~(|inter_ALU_Out);		// If all bits are zero flag is 1
 			error = 1'b0;
 			end
-		(4'b0011): begin//RED
+		(4'b0011): begin //RED
 			inter_ALU_Out = inter_RED;
 			error = 1'b0;
 			end
@@ -98,16 +98,20 @@ module ALU (output [15:0] ALU_Out, output [2:0] flags, input [3:0] opcode, input
 			inter_ALU_Out = (operand1 & 16'h00FF) | (operand2 << 1'd8);
 			error = 1'b0;
 			end
-		(4'b1100): begin //B
+		(4'b1100): begin //B	**CHECK THIS IN TESTING**
+			inter_ALU_Out = '1;
 			error = 1'b0;
 			end
-		(4'b1101): begin //BR
+		(4'b1101): begin //BR	**CHECK THIS IN TESTING**
+			inter_ALU_Out = '1;
 			error = 1'b0;
 			end
-		(4'b1110): begin //PCS
+		(4'b1110): begin //PCS	**CHECK THIS IN TESTING**
+			inter_ALU_Out = '1;
 			error = 1'b0;
 			end
-		(4'b1111): begin //HLT
+		(4'b1111): begin //HLT	**CHECK THIS IN TESTING**
+			inter_ALU_Out = '1;
 			error = 1'b0;
 			end
 		default:
