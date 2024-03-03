@@ -107,7 +107,8 @@ module ALU (output [15:0] ALU_Out, output [2:0] flags, input [3:0] opcode, input
 			error = 1'b0;
 			end
 		(4'b1110): begin //PCS	**CHECK THIS IN TESTING**
-			inter_ALU_Out = '1;
+			inter_operand2 = 16'h0002;
+			inter_ALU_Out = inter_adder;
 			error = 1'b0;
 			end
 		(4'b1111): begin //HLT	**CHECK THIS IN TESTING**
