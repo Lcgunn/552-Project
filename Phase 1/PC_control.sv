@@ -1,5 +1,4 @@
-`default_nettype none
-module PC_control(input [2:0]C, input [15:0] I, input [2:0] F, input [1:0] branch, input [15:0] PC_in, output [15:0] PC_out);
+module PC_control(input [2:0] C, input [15:0] I, input [2:0] F, input [1:0] branch, input [15:0] PC_in, output [15:0] PC_out);
 	//Overflow is [2], Negative[1], Zero[0]	
 	reg [15:0] calculated_pc,normal_pc, inter_PC_out;
 	reg [15:0] inter_op2, inter_op1;
