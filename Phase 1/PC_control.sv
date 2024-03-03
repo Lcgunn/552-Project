@@ -11,21 +11,21 @@ module PC_control(input [2:0]C, input [8:0] I, input [2:0] F, input [15:0] PC_in
 	always @ (C,I,F) begin
 	//Overflow is [2], Negative[1], Zero[0]
 		case(C) 
-			3'b000: //Not Equal
+			(3'b000): //Not Equal
 				PC_out = ~F[0] ? calculated_pc : normal_pc; 	
-			3'b001: //Equal
+			(3'b001): //Equal
 				PC_out = F[0] ? calculated_pc : normal_pc;
-			3'b010: //Greater Than
+			(3'b010): //Greater Than
 				PC_out = (~F[0] & ~F[1]) ? calculated_pc : normal_pc;	
-			3'b011: //Less Than
+			(3'b011): //Less Than
 				PC_out = F[1] ? calculated_pc : normal_pc;
-			3'b100: //Greater Than or Equal
+			(3'b100): //Greater Than or Equal
 				PC_out = (F[0] | (~F[0] & ~F[1])) ? calculated_pc : normal_pc;	
-			3'b101: //Less Than or Equal
+			(3'b101): //Less Than or Equal
 				PC_out = (F[0] | F[1]) ? calculated_pc : normal_pc;			
-			3'b110: //Overflow
+			(3'b110): //Overflow
 				PC_out = (F[2]) ? calculated_pc : normal_pc;	
-			3'b111: //Unconditional
+			(3'b111): //Unconditional
 				PC_out = calculated_pc;
 		endcase
 	end
