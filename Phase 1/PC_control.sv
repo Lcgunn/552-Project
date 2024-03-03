@@ -10,7 +10,9 @@ module PC_control(input [2:0]C, input [8:0] I, input [2:0] F, input [15:0] PC_in
 	PSA_16bit immediate (.Sum(calculated_pc),.Ovfl(), .A(normal_pc),. B(I << 1),.Sub(0),.pad(0));
 	
 	//Watch out for the reset
+	reg error;
 	always @ (C,I,F) begin
+	error = 1'b0;
 	//Overflow is [2], Negative[1], Zero[0]
 		case(C) 
 			3'b000: //Not Equal
@@ -29,6 +31,8 @@ module PC_control(input [2:0]C, input [8:0] I, input [2:0] F, input [15:0] PC_in
 				PC_out = (F[2]) ? calculated_pc : normal_pc;	
 			3'b111: //Unconditional
 				PC_out = calculated_pc;
+			default:
+				error = 1'b1;
 		endcase
 	end
 endmodule
