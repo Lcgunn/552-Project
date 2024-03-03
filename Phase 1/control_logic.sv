@@ -1,7 +1,9 @@
 			//this determines if the alu gets imm or reg
-module control_logic(input [3:0]Instr, output reg RegDst, output reg [1:0] Branch, output reg MemRead, output reg MemtoReg, output reg MemWrite, output reg ALU_Src, output reg RegWrite, output reg Halt);
+module control_logic(input [3:0]Instr, output reg RegDst, output reg [1:0] Branch, output reg MemRead, output reg MemtoReg, output reg MemWrite, output reg ALUSrc, output reg RegWrite, output reg Halt);
+	reg error;
 	
 	always @Instr begin
+		error = '0;
 		RegDst = '0;
 		Branch = '0;
 		MemRead = '0;
