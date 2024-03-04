@@ -1,23 +1,50 @@
-`default_nettype none
-module cpu (output hlt, output pc[15:0], input clk, input rst_n);
-	wire [15:0] current_instruction, next_instruction, stored_instruction, ALU_result, reg_1_data,reg_2_data;
+module cpu (output hlt, output [15:0] pc, input clk, input rst_n);
+	// PC wires
+	wire [15:0] current_instruction, next_instruction, stored_instruction, PC_intermediate;  //load_store_immediate 
+	
+	//Register file wires
+	wire [15:0] reg_1_data,reg_2_data,write_data;
+	wire [3:0] R_or_load, write_register;
+	
+	//ALU wires
+	wire [15:0] ALU_result, load_store_immediate, first_ALU_value, second_ALU_value; //not reg_1_data is also a signal into the ALU
 	wire [2:0] iflags;
-	//These are not passed by reference, and also the src variables should change
-														//	
-	memory1c Instr_mem(.data_out(current_instruction), .data_in(stored_instruction), addr, enable, wr, .clk(clk), .rst(~rst_n);
-	
-	memory1c Data_mem(data_out, data_in, addr, enable, wr, .clk(clk), .rst(~rst_n);
 
-													//Instructions follow the sequence: OPCODE, RD (destination), and then (RT and RS) or Immediate value 
-													//Watch out for the load lower and upper load
-	RegisterFile Registers (.clk(clk),.rst(~rst_n),.SrcReg1(current_instruction[7:4]),.SrcReg2(current_instruction[3:0]),.DstReg(current_instruction[15:12]),.WriteReg(WriteReg),.DstData(ALU_result),.SrcData1(reg_1_data),.SrcData2(reg_2_data));
+	//Data Memory Wires
+	wire [15:0] data_memory_out;
 	
-	control_logic controls (.Instr(current_instruction[15:12]), .immediate_or_reg())
+	//Top level control_logic
+	wire [1:0] Branch;
+	wire RegDst, MemtoReg, MemWrite, ALU_Src, RegWrite, Halt, PCS;
+
+							
+	//Instructions follow the sequence: OPCODE, RD (destination), and then (RT and RS) or Immediate value 
+	//Watch out for the load lower and upper load
+
+	//Instruction Memory
+	memory1c Instr_mem(.data_out(current_instruction), .data_in('0), .addr(stored_instruction), .enable('1), .wr('0), .clk(clk), .rst(~rst_n));	
+	//PC controls
+	assign PC_intermediate = Branch[0] ? {{7{current_instruction[8]}},current_instruction} : reg_2_data;
+	PC_control pc_cntrl (.C(current_instruction[11:9]), .I(PC_intermediate), .branch(Branch), .F(iflags), .PC_in(stored_instruction), .PC_out(next_instruction));	
+	dff stored_pc [15:0] (.q(stored_instruction),.d(next_instruction), .wen(~Halt), .clk(clk), .rst(~rst_n));
 	
-	PC_control pc (.C, .I, .F, .PC_in(stored_instruction), .PC_out(next_instruction));	
-	dff stored_pc [15:0] (.q(stored_instruction),.d(next_instruction), .wen(flag_enable), .clk(clk), .rst(~rst_n));
+	//Data Memory
+	memory1c Data_mem(.data_out(data_memory_out), .data_in(reg_2_data), .addr(ALU_result), .enable('1), .wr(MemWrite), .clk(clk), .rst(~rst_n));
+									
+	//Register File
+	assign R_or_load = MemWrite ? current_instruction[11:8] : current_instruction[3:0];
+	assign write_data = MemtoReg ? (data_memory_out) : ALU_result;
+	RegisterFile Registers (.clk(clk),.rst(~rst_n),.SrcReg1(current_instruction[7:4]),.SrcReg2(R_or_load),.DstReg(write_register),.WriteReg(RegWrite),.DstData(write_data),.SrcData1(reg_1_data),.SrcData2(reg_2_data));
 
-
-	ALU i_alu (.ALU_Out(ALU_result),.opcode(current_instruction[15:12]), .flags(iflags).operand1(reg_1_data),.operand2());
+	//Top Level Control signals
+	control_logic controls (.Instr(current_instruction[15:12]), .Branch(Branch), .RegDst(RegDst),.MemtoReg(MemtoReg),. MemWrite(MemWrite),.ALUSrc(ALU_Src),.RegWrite(RegWrite),.Halt(Halt),.PCS(PCS));
+	
+		
+	//ALU
+	assign load_store_immediate = {{12{current_instruction[3]}},current_instruction};
+	assign second_ALU_value = ALU_Src ? load_store_immediate : reg_2_data; 
+	//FIXME ACTUALLY DO LOGIC FOR PCS PCS IS BROKEN FIXME
+	assign first_ALU_value = PCS ? stored_instruction : reg_1_data; //This is a hack to see if the instruction is PCS
+	ALU i_alu (.ALU_Out(ALU_result), .flags(iflags) ,.opcode(current_instruction[15:12]), .operand1(first_ALU_value),.operand2(second_ALU_value), .clk(clk), .rst(~rst_n));
 	
 endmodule
