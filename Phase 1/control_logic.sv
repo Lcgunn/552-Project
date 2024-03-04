@@ -1,12 +1,12 @@
 			//this determines if the alu gets imm or reg
-module control_logic(input [3:0]Instr, output reg RegDst, output reg [1:0] Branch, output reg MemRead, output reg MemtoReg, output reg MemWrite, output reg ALUSrc, output reg RegWrite, output reg Halt);
-	reg error;
-	
+module control_logic(input [3:0]Instr, output reg RegDst, output reg [1:0] Branch, output reg MemtoReg, output reg MemWrite, output reg ALUSrc, output reg RegWrite, output reg Halt, output reg PCS);
+		reg error;
+		
 	always @Instr begin
+		PCS = '0;
 		error = '0;
 		RegDst = '0;
 		Branch = '0;
-		MemRead = '0;
 		MemtoReg = '0;
 		MemWrite = '0;
 		ALUSrc = '0;
@@ -60,7 +60,6 @@ module control_logic(input [3:0]Instr, output reg RegDst, output reg [1:0] Branc
 
 		(4'b1000): begin //LW
 			MemtoReg = '1;
-			MemRead = '1;
 			ALUSrc = '1;
 			RegWrite = '1;
 			end
@@ -72,14 +71,12 @@ module control_logic(input [3:0]Instr, output reg RegDst, output reg [1:0] Branc
 
 		(4'b1010): begin //LLB
 			MemtoReg = '1;
-			MemRead = '1;
 			ALUSrc = '1;
 			RegWrite = '1;
 			end
 
 		(4'b1011): begin //LHB
 			MemtoReg = '1;
-			MemRead = '1;
 			ALUSrc = '1;
 			RegWrite = '1;
 			end
@@ -97,6 +94,7 @@ module control_logic(input [3:0]Instr, output reg RegDst, output reg [1:0] Branc
 			end
 
 		(4'b1110): begin //PCS	
+			PCS = '1;
 			ALUSrc = '1;
 			RegWrite = '1;
 			end
@@ -110,4 +108,4 @@ module control_logic(input [3:0]Instr, output reg RegDst, output reg [1:0] Branc
 		endcase
 	end
 	
-endmodule
+endmodule 
