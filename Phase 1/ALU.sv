@@ -4,17 +4,17 @@ module ALU (output [15:0] ALU_Out, output [2:0] flags, input [3:0] opcode, input
 	wire [15:0] inter_RED;		// Output for red
 	reg [15:0] inter_ALU_Out;
 
-	reg [3:0] shift_mode;
+	reg [1:0] shift_mode;
 	reg [2:0] flaginput;//OVERFLOW[2]. NEGATIVE [1], ZERO IS [0]
 	reg [2:0] flag_enable;
 	reg [15:0] inter_operand2, inter_operand1;
 	wire temp_Ovfl;
 	reg isub, ipad;
 	// Implementing ADD/SUB/PADDSB
-	PSA_16bit adder (.Sum(inter_adder),.Ovfl(temp_Ovfl), .A(inter_operand1),.B(inter_operand2),.sub(isub),.pad(ipad));//FIXME SUB should be implemented
+	addsub_16bit adder (.Sum(inter_adder),.Error(temp_Ovfl), .A(inter_operand1),.B(inter_operand2),.sub(isub),.pad(ipad));//FIXME SUB should be implemented
 	
 	// Implementing SLL/SRA/ROR
-	Shifter shift(.Shift_out(inter_shift),.Shift_In(inter_operand1),.Shift_Val(operand2[3:0]),.Mode(shift_mode));
+	Shifter shift(.Shift_Out(inter_shift),.Shift_In(inter_operand1),.Shift_Val(operand2[3:0]),.Mode(shift_mode));
 
 	// Implementing RED
 	RED red (.rs(operand1), .rt(operand2), .Sum(inter_RED)); 
