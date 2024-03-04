@@ -7,11 +7,10 @@ module ReadDecoder_4_16(input [3:0] RegId, output [15:0] Wordline);
 	assign shift1 = RegId[1] ? (shift2 << 2) : shift2;
 	assign shift0 = RegId[0] ? (shift1 << 1) : shift1;
 	assign Wordline = shift0;
-
 endmodule
 
 module WriteDecoder_4_16(input [3:0] RegId, input WriteReg, output [15:0] Wordline);
-	wire [15:0] shift3, shift2,shift1,shift0,shiftv;
+	wire [15:0] shift3, shift2, shift1, shift0, shiftv;
 	assign shiftv = 16'h0001;
 	assign shift3 = RegId[3] ? (shiftv << 8) : shiftv;
 	assign shift2 = RegId[2] ? (shift3 << 4) : shift3;
@@ -22,11 +21,9 @@ endmodule
 
 module BitCell( input clk,  input rst, input D, input WriteEnable, input ReadEnable1, input ReadEnable2, inout Bitline1, inout Bitline2);
 	wire temp_q,combined_out;
-	assign combined_out = WriteEnable? D: temp_q;
 	dff one_flop(.q(temp_q), .d(D), .wen(WriteEnable), .clk(clk), .rst(rst));
-	assign Bitline1 = ~ReadEnable1 ? combined_out : 1'bz;
-	assign Bitline2 = ~ReadEnable2 ? combined_out : 1'bz;	
-
+	assign Bitline1 = ~ReadEnable1 ? temp_q : 1'bz;
+	assign Bitline2 = ~ReadEnable2 ? temp_q : 1'bz;	
 endmodule
 
 module Register( input clk,  input rst, input [15:0] D, input WriteReg, input ReadEnable1, input ReadEnable2, inout [15:0] Bitline1, inout [15:0] Bitline2);
@@ -54,13 +51,13 @@ logic [15:0] DstData;
 	initial begin
 		clk = 0;
 		rst = 1;
-		DstData = '0;
+		DstData = 16'h3099;
 		SrcReg1 = '1;
 		SrcReg2 = '1;
 		#15
 		rst = 0;
 		WriteReg = 1;
-		assert(DstData === '0 & SrcData1 === '0 & SrcData2 === '0)
+		assert(SrcData1 === '0 & SrcData2 === '0)
 		else begin
 			$display("Bad Reset");
 			$stop();
