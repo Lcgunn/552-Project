@@ -30,10 +30,13 @@ module cpu (output hlt, output [15:0] pc, input clk, input rst_n);
 	
 	//Data Memory
 	memory1c Data_mem(.data_out(data_memory_out), .data_in(reg_2_data), .addr(ALU_result), .enable('1), .wr(MemWrite), .clk(clk), .rst(~rst_n));
-									
+					
+					
 	//Register File
 	assign R_or_load = MemWrite ? current_instruction[11:8] : current_instruction[3:0];
 	assign write_data = MemtoReg ? (data_memory_out) : ALU_result;
+	assign write_register = current_instruction[11:8];
+	//FIXME for later
 	RegisterFile Registers (.clk(clk),.rst(~rst_n),.SrcReg1(current_instruction[7:4]),.SrcReg2(R_or_load),.DstReg(write_register),.WriteReg(RegWrite),.DstData(write_data),.SrcData1(reg_1_data),.SrcData2(reg_2_data));
 
 	//Top Level Control signals
@@ -43,7 +46,6 @@ module cpu (output hlt, output [15:0] pc, input clk, input rst_n);
 	//ALU
 	assign load_store_immediate = {{12{current_instruction[3]}},current_instruction};
 	assign second_ALU_value = ALU_Src ? load_store_immediate : reg_2_data; 
-	//FIXME ACTUALLY DO LOGIC FOR PCS PCS IS BROKEN FIXME
 	assign first_ALU_value = PCS ? stored_instruction : reg_1_data; //This is a hack to see if the instruction is PCS
 	ALU i_alu (.ALU_Out(ALU_result), .flags(iflags) ,.opcode(current_instruction[15:12]), .operand1(first_ALU_value),.operand2(second_ALU_value), .clk(clk), .rst(~rst_n));
 	
